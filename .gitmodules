@@ -1,0 +1,9 @@
+[submodule "sg_admin"]
+	path = sg_admin
+	url = git@github.com:wtg/sg_admin.git
+[submodule "sg_data"]
+	path = sg_data
+	url = git@github.com:wtg/sg_data.git
+[submodule "sg_public"]
+	path = sg_public
+	url = git@github.com:wtg/sg_public.git
