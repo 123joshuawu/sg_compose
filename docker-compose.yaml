@@ -1,7 +1,10 @@
 version: '3.4'
 
 volumes:
+  sg_data:
   sg_data_api_node_modules:
+  sg_public_vendor:
+  sg_admin_vendor:
 
 services:
   postgres:
@@ -11,20 +14,27 @@ services:
       - POSTGRES_DB=sg_data
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
+    ports:
+      - 5432:5432
+    volumes:
+      - sg_data:/var/lib/postgresql/data
+
   api:
     container_name: sg_data_api
     build:
       context: sg_data
-      target: build
-    command: bash -c "npm run seed && npm start"
+      target: develop
+    command: bash -c "npm run seed && nodemon --exec npm start --ignore docs/"
     ports:
-      - "3000:3000"
+      - 3000:3000
     environment:
       - DATABASE_URL=postgres://postgres:postgres@sg_data_postgres:5432/sg_data
     volumes:
       - sg_data_api_node_modules:/app/node_modules
+      - ./sg_data:/app
     depends_on:
       - postgres
+
   admin:
     container_name: sg_admin
     build:
@@ -32,9 +42,13 @@ services:
     command: php -S 0.0.0.0:8000
     ports:
       - 8000:8000
+    volumes:
+      - sg_admin_vendor:/var/www/vendor
+      - ./sg_admin:/var/www
     depends_on:
       - postgres
       - api
+
   public:
     container_name: sg_public
     build:
@@ -42,6 +56,9 @@ services:
     command: php -S 0.0.0.0:8080
     ports:
       - 8080:8080
+    volumes:
+      - sg_public_vendor:/var/www/vendor
+      - ./sg_public:/var/www
     depends_on:
       - postgres
       - api
