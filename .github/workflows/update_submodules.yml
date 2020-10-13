@@ -1,0 +1,40 @@
+name: Update submodules
+
+on:
+  # Run this workflow at end of every day
+  schedule:
+    - cron: "0 0 * * *"
+  workflow_dispatch:
+
+jobs:
+  update_submodules:
+    name: Update Submodules
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          submodules: true
+
+      - name: Pull most recent master for each submodule
+        run: git submodule foreach git pull origin master
+
+      - name: Export git status to environment variable
+        run: |
+          echo 'GIT_STATUS<<EOF' >> $GITHUB_ENV
+          git status >> $GITHUB_ENV
+          echo 'EOF' >> $GITHUB_ENV
+
+      - name: If there are changes open a pull request
+        uses: peter-evans/create-pull-request@v3
+        with:
+          token: ${{ secrets.PAT }}
+          commit-message: Update submodules
+          title: "Update submodules"
+          body: ${{ env.GIT_STATUS }}
+          labels: |
+            submodules
+          reviewers: |
+            123joshuawu
